@@ -21,11 +21,6 @@ let fontCredits;
 let fontWinscreen;
 
 let nomiconWasEverRead = false;
-let soundOn = true;
-let musicOn = true;
-let runningMusic = null;
-let runningMusicId = null;
-let musicToRun = null;
 
 let imgJuliDragon;
 let imgJuliDragonAlternate;
@@ -48,8 +43,6 @@ let stripStoryteller;
 /** @type {GameState} */
 let state;
 let collectedStamps = [];
-
-let sndEvents = {};
 
 const version = "v1.1.18";
 const TIME_TO_HOVER_MENU = 0.33;
@@ -396,28 +389,6 @@ function loadSettings()
         nomiconWasEverRead = nomicon == "yes";
     }
 
-    let soundSetting = localStorage.getItem("sound");
-    if(soundSetting == null)
-    {
-        localStorage.setItem("sound", "on");
-        soundOn = true;
-    }
-    else
-    {
-        soundOn = soundSetting == "on";
-    }
-
-    let musicSetting = localStorage.getItem("music");
-    if(soundSetting == null)
-    {
-        localStorage.setItem("music", "on");
-        musicOn = true;
-    }
-    else
-    {
-        musicOn = musicSetting == "on";
-    }
-
     collectedStamps = [];
     for(let stampSpec of STAMP_SPEC_IDS)
     {
@@ -430,8 +401,6 @@ function loadSettings()
 
 function saveSettings()
 {
-    localStorage.setItem("sound", soundOn ? "on" : "off");
-    localStorage.setItem("music", musicOn ? "on" : "off");
     localStorage.setItem("nomicon", nomiconWasEverRead ? "yes" : "no");
     for(let stamp of collectedStamps)
     {
@@ -1376,16 +1345,7 @@ function startFX(strip, scale, framesArray, x, y, fps = 10)
     state.animationsFX.push(a);
 }
 
-function play(sndEventId, volume = 0)
-{
-    if(!soundOn) return;
-    let sounds = sndEvents[sndEventId];
-    let sound = sounds[rnd(0, sounds.length)];
-    if(volume == 0) sound.volume = 0.33;
-    else sound.volume = volume;
-    sound.play();
-    return sound;
-}
+function play(sndEventId, volume = 0) {}
 
 function grantXP(xp)
 {
@@ -1908,32 +1868,6 @@ function updateBook(ctx, dt, worldR, HUDRect, clickedLeft)
         fontBook.drawLine(ctx, "patterns when dead", bookLeft.centerx(), bookLeft.bottom() - 40, FONT_CENTER);
 
         // fontBook.drawLine(ctx, "fear the mimic", bookRight.centerx(), bookRight.bottom() - 35, FONT_CENTER);
-
-        let soundR = new Rect();
-        soundR.w = 16;
-        soundR.h = 16;
-        soundR.x = bookLeft.x + 20;
-        soundR.y = bookLeft.bottom() - 25;
-        if(clickedLeft && soundR.contains(mousex, mousey))
-        {
-            soundOn = !soundOn;
-            if(soundOn)
-            {
-                play("spell");
-            }
-        }
-        drawFrame(ctx, stripIcons, soundOn ? 58 : 57, soundR.centerx(), soundR.centery());
-
-        let musicR = new Rect();
-        musicR.w = 16;
-        musicR.h = 16;
-        musicR.x = soundR.right() + 10;
-        musicR.y = bookLeft.bottom() - 25;
-        if(clickedLeft && musicR.contains(mousex, mousey))
-        {
-            musicOn = !musicOn;
-        }
-        drawFrame(ctx, stripIcons, musicOn ? 151 : 150, musicR.centerx(), musicR.centery());
 
         let offy = 0;
         for(let line of lines)
@@ -2944,7 +2878,6 @@ function updatePlaying(ctx, dt)
         {
             localStorage.clear();
             loadSettings();
-            musicToRun = null;
         }
         
         // cheats
@@ -3625,8 +3558,6 @@ function drawMarker(ctx, mark, centerx, centery)
 function updateWinscreen(ctx, dt)
 {
     // state.clearedBoard = true;
-    musicToRun = "music_win";
-
     let r = new Rect();
     r.w = backBuffer.width;
     r.h = backBuffer.height;
@@ -3792,67 +3723,6 @@ function onUpdate(phase, dt)
         fontUIRed.char_sep -= 1;
         fontUIRed.spaceWidth = 5;
     
-        addSound("crack_egg", "egg.wav");
-        addSound("pageflip", "pageflip.wav");
-        addSound("open_hover", "open_hover.wav");
-        addSound("close_hover", "close_hover.wav");
-        addSound("hover_over_button", "ui_hover.wav");
-        addSound("dragon_hurt", "dragon_complaining.wav");
-        addSound("dragon_dead", "dragon_death.wav");
-        addSound("music_win", "Dragon_Final.mp3");
-        addSoundStreamed("music", "Dragon_ingame.mp3");
-        addSound("gnome_jump", "laugh.wav");
-        addSound("disappointed", "disappointed.wav");
-        addSound("earthquake", "shake.wav");
-        addSound("can_level", "level_ready.wav");
-        addSound("alarm", "alarm.wav");
-        addSound("lose", "death.wav");
-        addSound("win", "win.wav");
-        addSound("explode", "death.wav");
-        addSound("hit_wall", "hitWall.wav");
-        addSound("hit_wall", "hit_wall2.wav");
-        addSound("chest_open", "chestOpen.wav");
-        addSound("uncover", "click.wav");
-        addSound("uncover", "click2.wav");
-        addSound("uncover", "click3.wav");
-        addSound("uncover", "click4.wav");
-        addSound("uncover", "click5.wav");
-        addSound("uncover", "click6.wav");
-        addSound("pick_xp", "pickupCoin.wav");
-        addSound("reveal", "orb1.wav");
-        addSound("reveal", "orb2.wav");
-        addSound("restart", "restart.wav");
-        addSound("heal", "healnew.wav");
-        addSound("fight", "fight1.wav");
-        addSound("fight", "fight2.wav");
-        addSound("fight", "fight3.wav");
-        addSound("fight_special", "hit_hard.wav");
-        addSound("spell", "spell2.wav");
-        addSound("wall_down", "wall_down.wav");
-        addSound("level_up", "level_up.wav");
-        addSound("book", "book.wav");
-        addSound("mark", "mark.wav");
-        addSound("remove_mark", "mark_highpitch.wav");
-        addSound("wrong", "wrong.wav");
-        addSound("jorge", "jorge.wav");
-
-        function addSound(eventId, path)
-        {
-            if(!(eventId in sndEvents))
-            {
-                sndEvents[eventId] = [];
-            }
-            sndEvents[eventId].push(loadSound("data/"+path));
-        }
-
-        function addSoundStreamed(eventId, path)
-        {
-            if(!(eventId in sndEvents))
-            {
-                sndEvents[eventId] = [];
-            }
-            sndEvents[eventId].push(loadSoundStreamed("data/"+path));    
-        }
     }
     else if(phase == UpdatePhase.Loading)
     {
@@ -3863,36 +3733,10 @@ function onUpdate(phase, dt)
     else if(phase == UpdatePhase.DoneLoading)
     {
         loadSettings();
-        musicToRun = "music";
         newGame();
     }
     else if(phase == UpdatePhase.Updating)
     {
-        // handle music
-        if(playerInteracted)
-        {
-            if(musicOn && musicToRun != null)
-            {
-                if(runningMusic == null || runningMusic.paused || runningMusicId != musicToRun)
-                {
-                    if(runningMusicId != musicToRun && runningMusic != null)
-                    {
-                        runningMusic.pause();
-                    }
-                    runningMusicId = musicToRun;
-                    let tracks = sndEvents[musicToRun];
-                    runningMusic = tracks[rnd(0, tracks.length)];
-                    runningMusic.volume = 0.5;
-                    runningMusic.play();
-                }
-            }
-            else
-            if(runningMusic != null && !runningMusic.paused)
-            {
-                runningMusic.pause();
-            }
-        }
-
         let ctx = get2DContext(backBuffer);
         ctx.imageSmoothingEnabled = false;
 

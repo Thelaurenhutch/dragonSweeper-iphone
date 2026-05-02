@@ -18,9 +18,7 @@ let backBuffer;
 let upscaledBackBuffer;
 let smoothing = false;
 let playerInteracted = false;
-let allSounds = [];
 let pendingStuffToLoad = 0;
-let audioHackPlayedSilentSoundToPreventLag = false;
 let initializedPostLoad = false;
 let mouseScreenX = 0;
 let mouseScreenY = 0;
@@ -65,39 +63,8 @@ class StripFrame
     }
 }
 
-function loadSoundStreamed(path)
-{
-    let ret = new Audio(path);
-    ret.preload = "none";
-    // ret.load();
-    ret.onloadeddata = function()
-    {
-        allSounds.push(ret);
-    };
-    return ret;    
-}
-
-function loadSound(path)
-{
-    pendingStuffToLoad += 1;
-    let ret = new Audio(path);
-    ret.preload = "auto";
-    ret.load();
-    ret.onloadeddata = function()
-    {
-        // if(!audioHackPlayedSilentSoundToPreventLag)
-        // {
-        //     audioHackPlayedSilentSoundToPreventLag = true;
-        //     let old = ret.volume;
-        //     ret.volume = 0.00001;
-        //     ret.play();
-        //     ret.volume = old;
-        // }
-        allSounds.push(ret);
-        pendingStuffToLoad -= 1;
-    };
-    return ret;
-}
+function loadSoundStreamed(path) { return null; }
+function loadSound(path) { return null; }
 
 function loadImage(path, fnAfterLoad)
 {
@@ -212,7 +179,7 @@ function loadFont(imagePath, cellw, cellh, pivotx, pivoty, charMap, hasCapitaliz
 
 function fitCanvas()
 {
-    screenMode = isMobile() ? WindowMode.FitScreen : WindowMode.FitScreen;
+    screenMode = WindowMode.FitScreen;
     let windowW = window.innerWidth;
     let windowH = window.innerHeight;
     let targetW = windowW;
@@ -222,32 +189,34 @@ function fitCanvas()
     {
         if(windowH > windowW)
         {
+            // Portrait: fill width, align to top so controls are reachable
             targetW = windowW;
-            targetH = targetW / widthOverHeight;    
+            targetH = targetW / widthOverHeight;
         }
         else
         {
+            // Landscape: fill height with small margin
             targetH = windowH * 0.975;
-            targetW = targetH * widthOverHeight;    
+            targetW = targetH * widthOverHeight;
         }
         smoothing = true;
     }
-    else
-    if(screenMode == WindowMode.RealPixels)
+    else if(screenMode == WindowMode.RealPixels)
     {
         smoothing = false;
-        targetW = backBuffer.width * ZOOMX;// / window.devicePixelRatio;
-        targetH = backBuffer.height * ZOOMY;// / window.devicePixelRatio;
+        targetW = backBuffer.width * ZOOMX;
+        targetH = backBuffer.height * ZOOMY;
     }
-    canvas.width = targetW;
-    canvas.height = targetH;
+    canvas.width = Math.floor(targetW);
+    canvas.height = Math.floor(targetH);
     canvas.style.position = "absolute";
     canvas.style.top = "0";
-    canvas.style.bottom = "0";
     canvas.style.left = "0";
     canvas.style.right = "0";
-    canvas.style.margin = "auto";
-    canvas.style.imageRendering = "pixelated;crisp-edges";
+    canvas.style.margin = "0 auto";
+    canvas.style.imageRendering = "pixelated";
+    canvas.style.imageRendering = "crisp-edges";
+    canvas.style.touchAction = "none";
 }
 
 function onLoadPage()
@@ -896,39 +865,9 @@ class BitmapFont
     }
 }
 
-function stopSound(snd)
-{
-    // snd.stop();
-    snd.pause(); // TODO: is this right??
-    snd.currentTime = 0;
-}
-
-function pauseSound(snd)
-{
-    snd.pause();
-    snd.currentTime = 0;
-}
-
-function playSound(snd, volume = 1, loop = false)
-{
-    if(!playerInteracted) return;
-    if(!snd.paused) return;
-    snd.volume = volume;
-    snd.loop = loop;
-    let promise = snd.play();
-    if(promise !== undefined)
-    {
-        promise.then(_ =>
-        {
-            // Autoplay started!
-        }).catch(error =>
-        {
-            console.log(error + " trying to play " + snd.src);
-            // Autoplay was prevented.
-            // Show a "Play" button so that user can start playback.
-        });
-    }
-}
+function stopSound(snd) {}
+function pauseSound(snd) {}
+function playSound(snd, volume = 1, loop = false) {}
 
 function canvasFromImage(image)
 {
@@ -985,22 +924,7 @@ function pickRandomArrayElement(theArray)
 
 function activatePlayerInteraction()
 {
-    if(!playerInteracted)
-    {
-        // console.log("activating player interaction");
-        playerInteracted = true;
-        // play one sound to trigger the sound loadings
-        if(allSounds.length > 0)
-        {
-            let snd = allSounds[0];
-            let old = snd.volume;
-            snd.volume = 0.00001;
-            snd.play();
-            snd.pause();
-            snd.volume = old;
-            // snd.currentTime = 0;
-        }
-    }
+    playerInteracted = true;
 }
 
 function tintImage(image, color)
