@@ -424,8 +424,8 @@ function newGame()
 
 function generateDungeon()
 {
-    state.gridW = 13;
-    state.gridH = 10;
+    state.gridW = 10;
+    state.gridH = 13;
 
     // generator
     /** @type {RandomGeneratorLayer} */
@@ -731,7 +731,7 @@ function generateDungeon()
                 let myLove = state.actors.find(b => b.id == ActorId.Giant && b != a);
                 if(myLove != undefined)
                 {
-                    if(((a.name == "romeo" && a.tx <= 5) || (a.name == "juliet" && a.tx >= 7)))
+                    if(((a.name == "romeo" && a.tx <= 4) || (a.name == "juliet" && a.tx >= 5)))
                     {
                         ret += 1000;
                     }
@@ -769,7 +769,7 @@ function generateDungeon()
             else
             if(a.id == ActorId.Dragon)
             {
-                if(a.tx == Math.floor(state.gridW/2) && a.ty == 4)
+                if(a.tx == Math.floor(state.gridW/2) && a.ty == Math.floor(state.gridH/2))
                 {
                     ret += 10000;
                 }
@@ -923,21 +923,22 @@ function generateDungeon()
 
 function isGuardianInRightQuadrant(a)
 {
+    // Grid is 10 wide × 13 tall; divide at x<5 (left) / x>=5 (right), y<6 (top) / y>=6 (bottom)
     if(a.name == "guard1")
     {
-        if(a.tx < 6 && a.ty < 4) return true;
+        if(a.tx < 5 && a.ty < 6) return true;
     }
     else if(a.name == "guard2")
     {
-        if(a.tx > 6 && a.ty < 4) return true;
+        if(a.tx >= 5 && a.ty < 6) return true;
     }
     else if(a.name == "guard3")
     {
-        if(a.tx > 6 && a.ty > 4) return true;
+        if(a.tx >= 5 && a.ty >= 6) return true;
     }
     else if(a.name == "guard4")
     {
-        if(a.tx < 6 && a.ty > 4) return true;
+        if(a.tx < 5 && a.ty >= 6) return true;
     }
     return false;
 }
@@ -992,7 +993,7 @@ function checkLevel()
             let centerx = Math.floor(state.gridW/2);
             let other = state.actors.find(b => b.id == ActorId.Giant && b.name != a.name);
             if(other == undefined) continue;
-            if((a.name == "romeo" && a.tx > 5) || (a.name == "juliet" && a.tx < 7)) fail("misplaced giant");
+            if((a.name == "romeo" && a.tx >= 5) || (a.name == "juliet" && a.tx < 5)) fail("misplaced giant");
             if(other.ty != a.ty) fail("misplaced giant");
             if(Math.abs(a.tx - centerx) != Math.abs(other.tx - centerx)) fail("misplaced giant");
         }
@@ -1219,12 +1220,14 @@ function getNeighborsCross(tx, ty)
     return ret;
 }
 
+const GRID_OFFSET_X = Math.floor((390 - 10 * 30) / 2); // 45px — centers 300px grid in 390px world
+
 function getRectForTile(tx, ty)
 {
     let r = new Rect();
     r.w = 30;
     r.h = 30;
-    r.x = tx * r.w;
+    r.x = GRID_OFFSET_X + tx * r.w;
     r.y = ty * r.h;
     return r;
 }
@@ -3612,7 +3615,7 @@ function updateWinscreen(ctx, dt)
     // let stampx = (WORLDW - state.stampsCollectedThisRun.length * 30 - (state.stampsCollectedThisRun.length - 1) * 5) * 0.5;
     let stampsW = state.stampsCollectedThisRun.length * 30 + (state.stampsCollectedThisRun.length - 1) * 5;
     let stampx = WORLDW * 0.5 - stampsW * 0.5 + 30 * 0.5;
-    let stampy = 293;
+    let stampy = WORLDH - 65;
     for(let stampId of state.stampsCollectedThisRun)
     {
         let index = STAMP_SPEC_IDS.findIndex(s => s == stampId);
@@ -3630,8 +3633,8 @@ function onUpdate(phase, dt)
 {
     if(phase == UpdatePhase.Init)
     {
-        WORLDW = 390;// + 30*2;
-        WORLDH = 330 + 10;
+        WORLDW = 390;
+        WORLDH = 13 * 30 + 41; // 13 rows of 30px cells + 41px HUD = 431
         ZOOMX = 2;
         ZOOMY = 2;
 
