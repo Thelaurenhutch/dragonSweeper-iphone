@@ -236,12 +236,22 @@ function fitCanvas()
         if(windowH > windowW)
         {
             targetW = windowW;
-            targetH = targetW / widthOverHeight;    
+            targetH = targetW / widthOverHeight;
+            if(targetH > windowH)
+            {
+                targetH = windowH;
+                targetW = targetH * widthOverHeight;
+            }
         }
         else
         {
             targetH = windowH * 0.975;
-            targetW = targetH * widthOverHeight;    
+            targetW = targetH * widthOverHeight;
+            if(targetW > windowW)
+            {
+                targetW = windowW;
+                targetH = targetW / widthOverHeight;
+            }
         }
         smoothing = true;
     }
@@ -575,6 +585,13 @@ function drawFrame(ctx, strip, frameIndex, x, y, flipX = false)
     }
     ctx.restore();
     return frame;
+}
+
+function drawFrameScaled(ctx, strip, frameIndex, x, y, w, h)
+{
+    console.assert(frameIndex < strip.frames.length, "invalid frame: "+frameIndex);
+    let frame = strip.frames[frameIndex];
+    ctx.drawImage(frame.img, Math.floor(x - w * 0.5), Math.floor(y - h * 0.5), w, h);
 }
 
 /** @param {CanvasRenderingContext2D} ctx*/
