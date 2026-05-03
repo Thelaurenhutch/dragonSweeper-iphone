@@ -29,6 +29,7 @@ let musicToRun = null;
 
 let imgJuliDragon;
 let imgJuliDragonAlternate;
+let imgTitle;
 let stripHint;
 let stripHintLevelup;
 let stripButtons;
@@ -57,6 +58,7 @@ const BOOK_MOVEMENT_DURATION = 1;
 const MAX_HP = 19;
 const MAX_LEVEL_WITH_HP_UPGRADE = 25;
 const ORB_RADIUS = 2.1;
+const GRID_OFFSET_Y = 200;
 const HEART_GROWING = [60, 61, 62, 63, 64, 65, 66].reverse();
 // const HEART_GROWING = [160, 161, 162, 163, 164];
 const HEART_DRAINING = [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92];
@@ -1256,7 +1258,7 @@ function getRectForTile(tx, ty)
     r.w = 30;
     r.h = 30;
     r.x = tx * r.w;
-    r.y = ty * r.h;
+    r.y = ty * r.h + GRID_OFFSET_Y;
     return r;
 }
 
@@ -1858,7 +1860,8 @@ function updateBook(ctx, dt, worldR, HUDRect, clickedLeft)
     bookR.w = stripBook.frames[0].rect.w;
     bookR.h = stripBook.frames[0].rect.h;
     bookR.x = (worldR.w - bookR.w) * 0.5;
-    bookR.y = (worldR.h - bookR.h - HUDRect.h) * 0.5;
+    bookR.y = GRID_OFFSET_Y + Math.round((worldR.h - GRID_OFFSET_Y - bookR.h - HUDRect.h) * 0.5);
+    let bookContentOffsetY = bookR.y - 5;
     let bookLeft = new Rect();
     bookLeft.h = bookR.h;
     bookLeft.w = bookR.w * 0.5;
@@ -1882,7 +1885,7 @@ function updateBook(ctx, dt, worldR, HUDRect, clickedLeft)
 
     if(state.bookPage == 0)
     {
-        let top = 30;
+        let top = 30 + bookContentOffsetY;
         fontBook.drawLine(ctx, "Monsternomicon", bookLeft.centerx(), top, FONT_CENTER);
 
         let lines = [];
@@ -1945,7 +1948,7 @@ function updateBook(ctx, dt, worldR, HUDRect, clickedLeft)
         let bookRightBody = new Rect();
         bookRightBody.copyFrom(bookRight);
         bookRightBody.h = bookRight.w  - 20;
-        bookRightBody.y = 40 + 10;
+        bookRightBody.y = 50 + bookContentOffsetY;
         bookRightBody.w *= 0.85;
         bookRightBody.x += 20;
         // fontUIBook.drawLine(ctx, "fear the mimic", bookRightBody.centerx(), bookRightBody.centery(), FONT_CENTER);
@@ -2216,9 +2219,9 @@ function updatePlaying(ctx, dt)
             basey = HUDRect.y - markerButtonTotalH;
         }
         else
-        if(basey < 0)
+        if(basey < GRID_OFFSET_Y)
         {
-            basey = 0;
+            basey = GRID_OFFSET_Y;
         }
 
         let offy = 0;
@@ -3232,6 +3235,18 @@ function updatePlaying(ctx, dt)
     }
 
     // rendering
+    // Draw portrait header (unaffected by screen shake)
+    {
+        let scale = WORLDW / imgJuliDragon.width;
+        let visibleSrcH = Math.round(GRID_OFFSET_Y / scale);
+        ctx.drawImage(imgJuliDragon, 0, 0, imgJuliDragon.width, visibleSrcH, 0, 0, WORLDW, GRID_OFFSET_Y);
+        if(imgTitle.complete) {
+            let titleScale = 2;
+            let tx = Math.floor((WORLDW - imgTitle.width * titleScale) / 2);
+            ctx.drawImage(imgTitle, tx, GRID_OFFSET_Y - 30, imgTitle.width * titleScale, imgTitle.height * titleScale);
+        }
+    }
+
     ctx.save();
     ctx.translate(screenx, screeny);
     // ctx.fillStyle = "#30291f";
@@ -3681,7 +3696,7 @@ function updateWinscreen(ctx, dt)
     // let stampx = (WORLDW - state.stampsCollectedThisRun.length * 30 - (state.stampsCollectedThisRun.length - 1) * 5) * 0.5;
     let stampsW = state.stampsCollectedThisRun.length * 30 + (state.stampsCollectedThisRun.length - 1) * 5;
     let stampx = WORLDW * 0.5 - stampsW * 0.5 + 30 * 0.5;
-    let stampy = 293;
+    let stampy = Math.round(WORLDH * 0.73);
     for(let stampId of state.stampsCollectedThisRun)
     {
         let index = STAMP_SPEC_IDS.findIndex(s => s == stampId);
@@ -3700,7 +3715,7 @@ function onUpdate(phase, dt)
     if(phase == UpdatePhase.Init)
     {
         WORLDW = 390;// + 30*2;
-        WORLDH = 330 + 10;
+        WORLDH = 340 + GRID_OFFSET_Y;
         ZOOMX = 2;
         ZOOMY = 2;
 
@@ -3722,6 +3737,7 @@ function onUpdate(phase, dt)
         stripLevelup = loadStrip("levelup.png", 225, 125, 225/2, 125/2);
         imgJuliDragon = loadImage("juli_dragon.png");
         imgJuliDragonAlternate = loadImage("juli_dragon_alternate.png");
+        imgTitle = loadImage("title.png");
 
         fontDebug = loadFont("font_small_white.png", 6, 6, 0, 6, 
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-+=:;,\"<>.?/\\[]_| ",
@@ -3912,6 +3928,7 @@ function onUpdate(phase, dt)
         }
 
         drawFrame(ctx, stripScanlines, 0, 0, 0);
+        drawFrame(ctx, stripScanlines, 0, 0, 335);
 
         if(keysJustPressed.includes('D'))
         {
