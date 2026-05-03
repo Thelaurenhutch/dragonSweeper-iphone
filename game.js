@@ -59,6 +59,9 @@ const MAX_HP = 19;
 const MAX_LEVEL_WITH_HP_UPGRADE = 25;
 const ORB_RADIUS = 2.1;
 const GRID_OFFSET_Y = 200;
+const TILE_SIZE = 39;
+const GRID_COLS = 10;
+const GRID_ROWS = 15;
 const HEART_GROWING = [60, 61, 62, 63, 64, 65, 66].reverse();
 // const HEART_GROWING = [160, 161, 162, 163, 164];
 const HEART_DRAINING = [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92];
@@ -457,8 +460,8 @@ function newGame()
 
 function generateDungeon()
 {
-    state.gridW = 13;
-    state.gridH = 10;
+    state.gridW = GRID_COLS;
+    state.gridH = GRID_ROWS;
 
     // generator
     /** @type {RandomGeneratorLayer} */
@@ -1255,8 +1258,8 @@ function getNeighborsCross(tx, ty)
 function getRectForTile(tx, ty)
 {
     let r = new Rect();
-    r.w = 30;
-    r.h = 30;
+    r.w = TILE_SIZE;
+    r.h = TILE_SIZE;
     r.x = tx * r.w;
     r.y = ty * r.h + GRID_OFFSET_Y;
     return r;
@@ -3266,14 +3269,14 @@ function updatePlaying(ctx, dt)
         // do not lower tile with killer monster
         if(state.player.hp == 0 && state.lastTileClicked == a) icon = 0;
         // if(a.id == ActorId.Dragon && a.defeated) icon = 1;
-        drawFrame(ctx, stripButtons, icon, centerx, centery);
-        if(icon != 1 && icon != 2) drawFrame(ctx, stripButtons, state.buttonFrames[a.tx + a.ty*state.gridW], centerx, centery);
+        drawFrameScaled(ctx, stripButtons, icon, centerx, centery, TILE_SIZE, TILE_SIZE);
+        if(icon != 1 && icon != 2) drawFrameScaled(ctx, stripButtons, state.buttonFrames[a.tx + a.ty*state.gridW], centerx, centery, TILE_SIZE, TILE_SIZE);
         if(a.revealed || debugOn || showEverything)
         {
             if(isEmpty(a))
             {
-                if(state.wallLocations.find(w => w[0] == a.tx && w[1] == a.ty) != undefined) drawFrame(ctx, stripButtons, 43, centerx, centery);
-                if(state.chestsLocations.find(w => w[0] == a.tx && w[1] == a.ty) != undefined) drawFrame(ctx, stripButtons, 44, centerx, centery);
+                if(state.wallLocations.find(w => w[0] == a.tx && w[1] == a.ty) != undefined) drawFrameScaled(ctx, stripButtons, 43, centerx, centery, TILE_SIZE, TILE_SIZE);
+                if(state.chestsLocations.find(w => w[0] == a.tx && w[1] == a.ty) != undefined) drawFrameScaled(ctx, stripButtons, 44, centerx, centery, TILE_SIZE, TILE_SIZE);
                 let neighbors = getAttackNumber(a.tx, a.ty);
                 
                 {
@@ -3372,7 +3375,7 @@ function updatePlaying(ctx, dt)
         // render a frame over the selected actor
         // @ts-ignore
         let r = getRectForTile(state.hoverMenu.actor.tx, state.hoverMenu.actor.ty);
-        drawFrame(ctx, stripButtons, 40, r.centerx(), r.centery());
+        drawFrameScaled(ctx, stripButtons, 40, r.centerx(), r.centery(), TILE_SIZE, TILE_SIZE);
 
         for(let i = 0; i < hoverRects.length; i++)
         {
@@ -3392,7 +3395,7 @@ function updatePlaying(ctx, dt)
         let circleFrame = Math.floor((clamp01(state.timeElapsedPushingButton/TIME_TO_HOVER_MENU) * 4) % 2);
         if(state.timeElapsedPushingButton > 0.12)
         {
-            drawFrame(ctx, stripButtons, circleFrames[circleFrame], r.centerx(), r.centery());
+            drawFrameScaled(ctx, stripButtons, circleFrames[circleFrame], r.centerx(), r.centery(), TILE_SIZE, TILE_SIZE);
         }
     }
     
@@ -3714,8 +3717,8 @@ function onUpdate(phase, dt)
 {
     if(phase == UpdatePhase.Init)
     {
-        WORLDW = 390;// + 30*2;
-        WORLDH = 340 + GRID_OFFSET_Y;
+        WORLDW = GRID_COLS * TILE_SIZE;
+        WORLDH = GRID_OFFSET_Y + GRID_ROWS * TILE_SIZE + 41;
         ZOOMX = 2;
         ZOOMY = 2;
 
