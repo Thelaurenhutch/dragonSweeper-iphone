@@ -96,6 +96,10 @@ function loadSound(path)
         allSounds.push(ret);
         pendingStuffToLoad -= 1;
     };
+    ret.onerror = function()
+    {
+        pendingStuffToLoad -= 1;
+    };
     return ret;
 }
 
@@ -173,11 +177,25 @@ function createFontVariant(otherFont, colorMultiplier)
         f.rect = otherFrame.rect;
         f.pivotx = otherFrame.pivotx;
         f.pivoty = otherFrame.pivoty;
-        f.img = createElement("canvas");
+        f.img = document.createElement("canvas");
         f.img.width = otherFrame.img.width;
         f.img.height = otherFrame.img.height;
         let ctx = f.img.getContext("2d");
-        ctx.drawImage(f.img, 0, 0);
+        ctx.drawImage(otherFrame.img, 0, 0);
+        if(colorMultiplier != 0xffffff)
+        {
+            let r = (colorMultiplier >> 16 & 0xff)/0xff;
+            let g = (colorMultiplier >> 8 & 0xff)/0xff;
+            let b = (colorMultiplier >> 0 & 0xff)/0xff;
+            let imgData = ctx.getImageData(0, 0, f.img.width, f.img.height);
+            for(let i = 0; i < imgData.data.length; i += 4)
+            {
+                imgData.data[i + 0] *= r;
+                imgData.data[i + 1] *= g;
+                imgData.data[i + 2] *= b;
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
         ret.strip.frames.push(f);
     }
     return ret;
@@ -185,13 +203,8 @@ function createFontVariant(otherFont, colorMultiplier)
 
 function createFont(image, cellw, cellh, pivotx, pivoty, charMap, hasCapitalization, colorMultiplier = 0xffffff, fnAfterLoad = null)
 {
-    let strip = new Strip();
-    strip.lo
-
     let ret = new BitmapFont();
-    ret.loadFromStrip()
-
-    loadStrip(imagePath, cellw, cellh, pivotx, pivoty, colorMultiplier, function(strip)
+    loadStrip(image, cellw, cellh, pivotx, pivoty, colorMultiplier, function(strip)
     {
         ret.loadFromStrip(strip, charMap, hasCapitalization);
         if(fnAfterLoad != null) fnAfterLoad(ret);
