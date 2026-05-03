@@ -96,10 +96,10 @@ function loadSound(path)
         allSounds.push(ret);
         pendingStuffToLoad -= 1;
     };
-    ret.onerror = function()
+    ret.addEventListener('error', function()
     {
         pendingStuffToLoad -= 1;
-    };
+    });
     return ret;
 }
 
@@ -113,7 +113,11 @@ function loadImage(path, fnAfterLoad)
         pendingStuffToLoad -= 1;
         if(fnAfterLoad != null) fnAfterLoad(ret);
     };
-    return ret;    
+    ret.onerror = function()
+    {
+        pendingStuffToLoad -= 1;
+    };
+    return ret;
 }
 
 function loadStrip(path, cellw, cellh, pivotx, pivoty, colorMultiplier = 0xffffff, fnAfterLoad)
