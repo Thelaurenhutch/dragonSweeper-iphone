@@ -408,7 +408,7 @@ function loadSettings()
     }
 
     let musicSetting = localStorage.getItem("music");
-    if(soundSetting == null)
+    if(musicSetting == null)
     {
         localStorage.setItem("music", "on");
         musicOn = true;
@@ -3667,7 +3667,7 @@ function updateWinscreen(ctx, dt)
     // lines.push("feeling the bitter sting of loneliness");
     let deltaSeconds = Math.floor((state.endTime - state.startTime)/1000);
     let deltaMinutes = Math.floor(deltaSeconds/60) % 60;
-    let deltaHours = Math.floor(deltaMinutes/60);
+    let deltaHours = Math.floor(deltaSeconds/3600);
     let deltaSecondsAjusted = deltaSeconds % 60;
     let timeStr = "#"+deltaHours+":"+deltaMinutes+":"+deltaSecondsAjusted.toString().padStart(2, "0");
 
